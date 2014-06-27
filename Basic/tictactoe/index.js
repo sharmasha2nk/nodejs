@@ -1,4 +1,4 @@
-var express = require("express");
+var express = require('express');
 var app = express();
 var port = 3700;
 
@@ -12,13 +12,11 @@ app.get("/", function (req, res) {
 app.use(express.static(__dirname + '/public'));
 
 var io = require('socket.io').listen(app.listen(port));
-var board = [
-  '', '', '',
-  '', '', '',
-  '', '', ''
-];
 
-var occupiedCellCount = 0;
+var GAME_STATUS_ENUM = require('./app/models/game_status_enum');
+
+var Board = require('./app/models/board');
+var board = Board.getBoard();
 
 var lastPlayer;
 var player1;
@@ -26,110 +24,6 @@ var player2;
 
 var renderBoard = function (socket) {
   socket.emit('render-board', board);
-};
-
-var transform1DTo2D = function (cell) {
-  return {
-    row: Math.floor(cell / 3),
-    col: cell % 3
-  };
-};
-
-var transform2DTo1D = function (cell2D) {
-  return cell2D.row * 3 + cell2D.col;
-};
-
-var checkHorizontally = function (row, playerSymbol) {
-  for (var c = 0; c < 3; c++) {
-    var cell = transform2DTo1D({
-      row: row,
-      col: c
-    });
-    if (board[cell] === '') return false;
-    else if (board[cell] != playerSymbol) return false;
-  }
-
-  return true;
-};
-
-var checkVertically = function (col, playerSymbol) {
-  for (var r = 0; r < 3; ++r) {
-    var cell = transform2DTo1D({
-      row: r,
-      col: col
-    });
-
-    if (board[cell] === '') return false;
-    else if (board[cell] != playerSymbol) return false;
-  }
-
-  return true;
-};
-
-var checkDiagonallyL2R = function (row, col, playerSymbol) {
-  var cell = transform2DTo1D({
-    row: row,
-    col: col
-  });
-
-  if (cell % 2 !== 0) return false;
-
-  for (var r = 0; r < 3; ++r) {
-    var cell = transform2DTo1D({
-      row: r,
-      col: r
-    });
-
-    if (board[cell] === '') return false;
-    else if (board[cell] != playerSymbol) return false;
-  }
-
-  return true;
-};
-
-var checkDiagonallyR2L = function (row, col, playerSymbol) {
-  var cell = transform2DTo1D({
-    row: row,
-    col: col
-  });
-
-  if (cell % 2 !== 0) return false;
-
-  for (var r = 0; r < 3; ++r) {
-    var cell = transform2DTo1D({
-      row: r,
-      col: 2 - r
-    });
-
-    if (board[cell] === '') return false;
-    else if (board[cell] != playerSymbol) return false;
-  }
-
-  return true;
-};
-
-var checkDiagonally = function (row, col, playerSymbol) {
-  return checkDiagonallyL2R(row, col, playerSymbol) || checkDiagonallyR2L(row, col, playerSymbol);
-};
-
-var GAME_STATUS_ENUM = Object.freeze({
-  WON: 0,
-  IN_PROGRESS: 1,
-  TIE: 2
-});
-
-var checkWin = function (lastMove) {
-  var cell2D = transform1DTo2D(lastMove);
-
-  if (checkHorizontally(cell2D.row, board[lastMove]) || checkVertically(cell2D.col, board[lastMove]) || checkDiagonally(cell2D.row, cell2D.col, board[lastMove])) {
-    return GAME_STATUS_ENUM.WON;
-  }
-
-  if (occupiedCellCount === 9) {
-    return GAME_STATUS_ENUM.TIE;
-  }
-
-  return GAME_STATUS_ENUM.IN_PROGRESS;
 };
 
 io.sockets.on('connection', function (socket) {
@@ -197,13 +91,13 @@ io.sockets.on('connection', function (socket) {
 
       socket.emit('message', '');
 
-      occupiedCellCount++;
       board[data.cell] = data.symbol;
       lastPlayer = data.player;
 
       io.sockets.emit('move', data);
 
-      if (checkWin(data.cell) === GAME_STATUS_ENUM.WON) {
+      var gameStatus = Board.checkWin(data.cell); 
+      if (gameStatus === GAME_STATUS_ENUM.WON) {
         socket.emit('won', 'You won!!! :D');
 
         if (socket === player1) {
@@ -213,7 +107,7 @@ io.sockets.on('connection', function (socket) {
           console.log('Player 2 won!');
           player1.emit('lost', 'You lost!!! >:)');
         }
-      } else if (checkWin(data.cell) === GAME_STATUS_ENUM.TIE) {
+      } else if (gameStatus === GAME_STATUS_ENUM.TIE) {
         io.sockets.emit('tie', 'Tie!!');
       }
     }
