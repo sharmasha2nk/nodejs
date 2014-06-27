@@ -2,7 +2,7 @@ var express = require("express");
 var app = express();
 var port = 3700;
 
-app.set('views', __dirname + '/tpl');
+app.set('views', __dirname + '/app/views');
 app.set('view engine', "jade");
 app.engine('jade', require('jade').__express);
 app.get("/", function (req, res) {
