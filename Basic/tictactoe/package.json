@@ -1,11 +1,18 @@
 {
-    "name": "tictactoe",
-    "version": "0.0.1",
-    "description": "Real time tic tac toe",
-    "dependencies": {
-        "socket.io": "latest",
-        "express": "latest",
-        "jade": "latest"
-    },
-    "author": "shashank, trieu"
+  "name": "tictactoe",
+  "version": "0.0.2",
+  "description": "Real time tic tac toe",
+  "dependencies": {
+    "chai": "latest",
+    "express": "latest",
+    "jade": "latest",
+    "mocha": "latest",
+    "sinon": "latest",
+    "sinon-chai": "latest",
+    "socket.io": "latest",
+    "grunt": "latest",
+    "load-grunt-tasks": "latest",
+    "grunt-simple-mocha": "latest"
+  },
+  "author": "shashank, trieu"
 }
