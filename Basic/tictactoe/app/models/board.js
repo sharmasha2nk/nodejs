@@ -1,16 +1,5 @@
 var GAME_STATUS_ENUM = require('./game_status_enum');
 
-var occupiedCellCount = 0;
-var board = [
-  '', '', '',
-  '', '', '',
-  '', '', ''
-];
-
-var Board = function () {
-
-};
-
 var transform1DTo2D = function (cell) {
   return {
     row: Math.floor(cell / 3),
@@ -22,7 +11,7 @@ var transform2DTo1D = function (cell2D) {
   return cell2D.row * 3 + cell2D.col;
 };
 
-var checkHorizontally = function (row, playerSymbol) {
+var checkHorizontally = function (board, row, playerSymbol) {
   for (var c = 0; c < 3; c++) {
     var cell = transform2DTo1D({
       row: row,
@@ -35,7 +24,7 @@ var checkHorizontally = function (row, playerSymbol) {
   return true;
 };
 
-var checkVertically = function (col, playerSymbol) {
+var checkVertically = function (board, col, playerSymbol) {
   for (var r = 0; r < 3; ++r) {
     var cell = transform2DTo1D({
       row: r,
@@ -49,7 +38,7 @@ var checkVertically = function (col, playerSymbol) {
   return true;
 };
 
-var checkDiagonallyL2R = function (row, col, playerSymbol) {
+var checkDiagonallyL2R = function (board, row, col, playerSymbol) {
   var cell = transform2DTo1D({
     row: row,
     col: col
@@ -70,7 +59,7 @@ var checkDiagonallyL2R = function (row, col, playerSymbol) {
   return true;
 };
 
-var checkDiagonallyR2L = function (row, col, playerSymbol) {
+var checkDiagonallyR2L = function (board, row, col, playerSymbol) {
   var cell = transform2DTo1D({
     row: row,
     col: col
@@ -91,29 +80,53 @@ var checkDiagonallyR2L = function (row, col, playerSymbol) {
   return true;
 };
 
-var checkDiagonally = function (row, col, playerSymbol) {
-  return checkDiagonallyL2R(row, col, playerSymbol) || checkDiagonallyR2L(row, col, playerSymbol);
+var checkDiagonally = function (board, row, col, playerSymbol) {
+  return checkDiagonallyL2R(board, row, col, playerSymbol) || checkDiagonallyR2L(board, row, col, playerSymbol);
 };
 
-var checkWin = function (lastMove) {
-  occupiedCellCount++;
-  var cell2D = transform1DTo2D(lastMove);
+var Board = function () {
+  var occupiedCellCount = 0;
+  var board = [
+    '', '', '',
+    '', '', '',
+    '', '', ''
+  ];
 
-  if (checkHorizontally(cell2D.row, board[lastMove]) || checkVertically(cell2D.col, board[lastMove]) || checkDiagonally(cell2D.row, cell2D.col, board[lastMove])) {
+  this.isBoardFull = function () {
+    return occupiedCellCount === 9;
+  };
+
+  this.makeMove = function (cell, symbol) {
+    board[cell] = symbol;
+    occupiedCellCount++;
+  };
+
+
+  this.getBoard = function () {
+    return board;
+  };
+}
+
+Board.prototype.checkWin = function (lastMove) {
+  var cell2D = transform1DTo2D(lastMove);
+  var board = this.getBoard();
+
+  if (checkHorizontally(board, cell2D.row, board[lastMove]) ||
+    checkVertically(board, cell2D.col, board[lastMove]) ||
+    checkDiagonally(board, cell2D.row, cell2D.col, board[lastMove])) {
     return GAME_STATUS_ENUM.WON;
   }
 
-  if (occupiedCellCount === 9) {
+  if (this.isBoardFull()) {
     return GAME_STATUS_ENUM.TIE;
   }
 
   return GAME_STATUS_ENUM.IN_PROGRESS;
 };
 
-
-module.exports = {
-  getBoard: function () {
-    return board;
-  },
-  checkWin: checkWin
+//Render Board
+Board.prototype.renderBoard = function (socket) {
+  socket.emit('render-board', this.getBoard());
 };
+
+module.exports = Board;
