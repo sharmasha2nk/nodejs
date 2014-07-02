@@ -1,11 +1,39 @@
 var GAME_STATUS_ENUM = require('./game_status_enum');
 
+var Board = function () {
+  var occupiedCellCount = 0;
+  var board = [
+    '', '', '',
+    '', '', '',
+    '', '', ''
+  ];
+
+  this.isBoardFull = function () {
+    return occupiedCellCount === 9;
+  };
+
+  this.makeMove = function (cell, symbol) {
+    board[cell] = symbol;
+    occupiedCellCount++;
+  };
+
+
+  this.getBoard = function () {
+    return board;
+  };
+}
+
 var transform1DTo2D = function (cell) {
+  if(cell < 0 || cell >= 9)
+    throw new Error('Invalid 1D cell!');
+
   return {
     row: Math.floor(cell / 3),
     col: cell % 3
   };
 };
+
+Board.transform1DTo2D = transform1DTo2D;
 
 var transform2DTo1D = function (cell2D) {
   return cell2D.row * 3 + cell2D.col;
@@ -83,29 +111,6 @@ var checkDiagonallyR2L = function (board, row, col, playerSymbol) {
 var checkDiagonally = function (board, row, col, playerSymbol) {
   return checkDiagonallyL2R(board, row, col, playerSymbol) || checkDiagonallyR2L(board, row, col, playerSymbol);
 };
-
-var Board = function () {
-  var occupiedCellCount = 0;
-  var board = [
-    '', '', '',
-    '', '', '',
-    '', '', ''
-  ];
-
-  this.isBoardFull = function () {
-    return occupiedCellCount === 9;
-  };
-
-  this.makeMove = function (cell, symbol) {
-    board[cell] = symbol;
-    occupiedCellCount++;
-  };
-
-
-  this.getBoard = function () {
-    return board;
-  };
-}
 
 Board.prototype.checkWin = function (lastMove) {
   var cell2D = transform1DTo2D(lastMove);

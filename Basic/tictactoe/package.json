@@ -3,16 +3,18 @@
   "version": "0.0.2",
   "description": "Real time tic tac toe",
   "dependencies": {
-    "chai": "latest",
     "express": "latest",
     "jade": "latest",
+    "socket.io": "latest"
+  },
+  "author": "shashank, trieu",
+  "devDependencies": {
+    "chai": "latest",
+    "grunt": "latest",
+    "grunt-simple-mocha": "^0.4.0",
+    "load-grunt-tasks": "latest",
     "mocha": "latest",
     "sinon": "latest",
-    "sinon-chai": "latest",
-    "socket.io": "latest",
-    "grunt": "latest",
-    "load-grunt-tasks": "latest",
-    "grunt-simple-mocha": "latest"
-  },
-  "author": "shashank, trieu"
+    "sinon-chai": "latest"
+  }
 }
